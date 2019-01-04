@@ -1,0 +1,20 @@
+{
+    "name": "RingBuffer",
+    "keywords": "ringbuffer, vector, queue, deque",
+    "description": "RingBuffer for Arduino",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/hideakitai/RingBuffer.git"
+    },
+    "authors":
+    {
+        "name": "Hideaki Tai",
+        "url": "https://github.com/hideakitai",
+        "maintainer": true
+    },
+    "version": "0.1.0",
+    "license": "MIT",
+    "frameworks": "arduino",
+    "platforms": "*"
+}
