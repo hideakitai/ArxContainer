@@ -1,5 +1,7 @@
 # RingBuffer
-RingBuffer for Arduino
+RingBuffer for Arduino (replacement of `std::queue`, `std::deque` or `std::vector`).
+AVR boards (like Uno and Mega) can't use `std::queue`, `std::deque` or `std::vector`.
+This library is simple (and limited) replacement of such STLs.
 
 ## Usage
 

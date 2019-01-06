@@ -1,7 +1,7 @@
 {
     "name": "RingBuffer",
     "keywords": "ringbuffer, vector, queue, deque",
-    "description": "RingBuffer for Arduino",
+    "description": "RingBuffer for Arduino (replacement of std::queue, std::deque and std::vector)",
     "repository":
     {
         "type": "git",
