@@ -1,7 +1,7 @@
-#include <RingBuffer.h>
+#include <ArxRingBuffer.h>
 
 struct Data { int number; String str; };
-RingBuffer<Data, 3> buffer;
+ArxRingBuffer<Data, 3> buffer;
 
 void setup()
 {

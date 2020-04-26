@@ -1,6 +1,6 @@
-#include <RingBuffer.h>
+#include <ArxRingBuffer.h>
 
-RingBuffer<uint8_t, 4> buffer;
+ArxRingBuffer<uint8_t, 4> buffer;
 
 void setup()
 {

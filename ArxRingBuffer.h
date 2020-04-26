@@ -127,6 +127,6 @@ private:
 } // namespace arx
 
 template<typename T, size_t SIZE>
-using RingBuffer = arx::util::RingBuffer<T, SIZE>;
+using ArxRingBuffer = arx::util::RingBuffer<T, SIZE>;
 
 #endif // ARX_UTIL_RINGBUFFER_H
