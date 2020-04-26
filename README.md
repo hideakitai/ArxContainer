@@ -1,5 +1,5 @@
-# RingBuffer
-RingBuffer for Arduino (replacement of `std::queue`, `std::deque` or `std::vector`).
+# ArxRingBuffer
+ArxRingBuffer for Arduino (replacement of `std::queue`, `std::deque` or `std::vector`).
 AVR boards (like Uno and Mega) can't use `std::queue`, `std::deque` or `std::vector`.
 This library is simple (and limited) replacement of such STLs.
 
@@ -8,8 +8,8 @@ This library is simple (and limited) replacement of such STLs.
 ### Simple
 
 ``` C++
-#include <RingBuffer.h>
-RingBuffer<uint8_t, 4> buffer;
+#include <ArxRingBuffer.h>
+ArxRingBuffer<uint8_t, 4> buffer;
 
 void setup()
 {
@@ -33,9 +33,9 @@ void setup()
 ### Original Data Class
 
 ``` C++
-#include <RingBuffer.h>
+#include <ArxRingBuffer.h>
 struct Data { int number; String str; };
-RingBuffer<Data, 3> buffer;
+ArxRingBuffer<Data, 3> buffer;
 
 void setup()
 {
@@ -78,6 +78,7 @@ void push_back(const T& data)
 void push_back(T&& data)
 
 void pop()
+void pop_front()
 void pop_back()
 
 const T& front() const
