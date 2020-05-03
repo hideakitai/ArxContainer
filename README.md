@@ -108,7 +108,7 @@ for(auto& b : buffer)
     Serial.println(b);
 ```
 
-`arx::xxxx` is dericed from `RingBuffer` and defined as:
+`arx::xxxx` are derived from `RingBuffer` and defined as:
 
 ``` C++
 namespace arx {
@@ -128,7 +128,7 @@ So range-based loop cannot be applyed to `arx::deque` (iterator is not continuou
 
 ### Manage Size Limit of Container
 
-global default size of container can be changed as:
+Global default size of container can be changed by defining these macros before `#include <ArxContainer.h>`.
 
 ``` C++
 #define ARX_VECTOR_DEFAULT_SIZE XX // default: 16
@@ -136,7 +136,7 @@ global default size of container can be changed as:
 #define ARX_DEQUE_DEFAULT_SIZE XX  // default: 16
 ```
 
-or create container with template argument:
+Or you can change each container size by template argument.
 
 ``` C++
 arx::vector<int, 3> vs;
