@@ -1,103 +1,154 @@
-# ArxRingBuffer
-ArxRingBuffer for Arduino (replacement of `std::queue`, `std::deque` or `std::vector`).
-AVR boards (like Uno and Mega) can't use `std::queue`, `std::deque` or `std::vector`.
-This library is simple (and limited) replacement of such STLs.
+# ArxContainer
+
+C++ container-like classes (vector, map, etc.) for Arduino which cannot use STL
+
+## Note
+
+`ArxContainer` is C++ container-__like__ classes for Arduino.
+All of the functions is not supported currently.
+Detail of these containers are described in Detail section.
+
+## Supported Container Types
+
+- `vector`
+- `map` (`pair`)
+- `deque`
+
+
+## Supported Boards
+
+This library is currently enabled only if you use following architecture.
+Please use C++ Standard Template Library for other boards.
+
+- AVR (Uno, Nano, Mega, etc.)
+- MEGAAVR (Uno WiFi, Nano Ecery, etc.)
+- SAMD (Zero, MKR, M0, etc.)
+- SPRESENSE
+
+
+
 
 ## Usage
 
-### Simple
+### vector
+
+```C++
+arx::vector<int> vs;
+
+// add contents
+for (size_t i = 0; i < 5; ++i)
+    vs.push_back(i);
+
+// index access
+for (size_t i = 0; i < vs.size(); ++i)
+    Serial.println(vs[i]);
+
+// range-based access
+for (const auto& v : vs)
+    Serial.println(v);
+```
+
+### map
 
 ``` C++
-#include <ArxRingBuffer.h>
+arx::map<String, int> mp;
+
+// add contents
+mp.insert("one", 1);
+mp["two"] = 2;
+
+// range based access
+for (const auto& m : mp)
+{
+    Serial.print("{");
+    Serial.print(m.first); Serial.print(",");
+    Serial.print(m.second);
+    Serial.println("}");
+}
+
+// key access
+Serial.print("one = "); Serial.println(mp["one"]);
+Serial.print("two = "); Serial.println(mp["two"]);
+```
+
+### deque
+
+```C++
+arx::deque<int> dq;
+
+// add contents
+for (int i = 0; i < 5; ++i)
+    dq.push_back(i);
+
+// index access
+for (int i = 0; i < dq.size(); ++i)
+    Serial.print(dq[i]);
+```
+
+
+## Detail
+
+`ArxContainer` is C++ container-__like__ classes for Arduino.
+This library is based on `arx::RingBuffer` and `arx::xxxx` is limited-size container.
+`arx::RingBuffer` can be used as:
+
+```C++
 ArxRingBuffer<uint8_t, 4> buffer;
 
-void setup()
-{
-    buffer.push(1);
-    buffer.push(2);
-    buffer.push(3);
-    buffer.push(4);
+buffer.push(1);
+buffer.push(2);
+buffer.push(3);
 
-    for(size_t i = 0; i < buffer.size(); ++i)
-        Serial.println(buffer[i]);
+for(size_t i = 0; i < buffer.size(); ++i)
+    Serial.println(buffer[i]);
 
-    buffer.pop();
+buffer.pop();
 
-    for(auto& b : buffer)
-        Serial.println(b);
+for(auto& b : buffer)
+    Serial.println(b);
+```
 
-    buffer.clear();
+`arx::xxxx` is dericed from `RingBuffer` and defined as:
+
+``` C++
+namespace arx {
+    template <typename T, size_t N = ARX_VECTOR_DEFAULT_SIZE>
+    struct vector : public RingBuffer<T, N>
+
+    template <class Key, class T, size_t N = ARX_MAP_DEFAULT_SIZE>
+    struct map : public RingBuffer<pair<Key, T>, N>
+
+    template <typename T, size_t N = ARX_DEQUE_DEFAULT_SIZE>
+    struct deque : public RingBuffer<T, N>
 }
 ```
 
-### Original Data Class
+So range-based loop cannot be applyed to `arx::deque` (iterator is not continuous because it is based on `RingBuffer`).
+
+
+### Manage Size Limit of Container
+
+global default size of container can be changed as:
 
 ``` C++
-#include <ArxRingBuffer.h>
-struct Data { int number; String str; };
-ArxRingBuffer<Data, 3> buffer;
-
-void setup()
-{
-    buffer.push(Data({1, "one"}));
-    buffer.push(Data({2, "two"}));
-    Data data = {3, "three"};
-    buffer.push(data);
-
-    for(size_t i = 0; i < buffer.size(); ++i)
-    {
-        Serial.print(buffer[i].number);
-        Serial.print(", ");
-        Serial.println(buffer[i].str);
-    }
-
-    buffer.pop();
-
-    for(auto& b : buffer)
-    {
-        Serial.print(b.number);
-        Serial.print(", ");
-        Serial.println(b.str);
-    }
-}
+#define ARX_VECTOR_DEFAULT_SIZE XX // default: 16
+#define ARX_MAP_DEFAULT_SIZE XX    // default: 16
+#define ARX_DEQUE_DEFAULT_SIZE XX  // default: 16
 ```
 
-## APIs
+or create container with template argument:
 
 ``` C++
-size_t capacity() const
-size_t size() const
-bool empty() const
-
-const T* data() const
-T* data()
-
-void push(const T& data)
-void push(T&& data)
-void push_back(const T& data)
-void push_back(T&& data)
-
-void pop()
-void pop_front()
-void pop_back()
-
-const T& front() const
-T& front()
-const T& back() const
-T& back()
-const T& operator[] (uint8_t index) const
-T& operator[] (uint8_t index)
-
-const T* begin() const
-T* begin()
-const T* end() const
-T* end()
-
-void clear()
-T* erase(T* p)
-void resize(size_t sz)
-void assign(const T* const first, const T* const end)
+arx::vector<int, 3> vs;
+arx::map<String, int, 4> ms;
+arx::deque<int, 5> ds;
 ```
+
+## Roadmap
+
+This library will be updated if I want to use more container interfaces on supported boards shown above.
+PRs are welcome!
+
 
 ## License
 

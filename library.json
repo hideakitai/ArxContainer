@@ -1,11 +1,11 @@
 {
-    "name": "RingBuffer",
-    "keywords": "ringbuffer, vector, queue, deque",
-    "description": "RingBuffer for Arduino (replacement of std::queue, std::deque and std::vector)",
+    "name": "ArxContainer",
+    "keywords": "ringbuffer, vector, deque, map",
+    "description": "C++ container-like classes (vector, map, etc.) for Arduino which cannot use STL",
     "repository":
     {
         "type": "git",
-        "url": "https://github.com/hideakitai/RingBuffer.git"
+        "url": "https://github.com/hideakitai/ArxContainer.git"
     },
     "authors":
     {
@@ -13,7 +13,7 @@
         "url": "https://github.com/hideakitai",
         "maintainer": true
     },
-    "version": "0.2.0",
+    "version": "0.3.0",
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": "*"
