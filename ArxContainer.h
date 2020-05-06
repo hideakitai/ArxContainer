@@ -287,7 +287,7 @@ namespace arx {
             iterator it = find(key);
             if (it != this->end()) return it->second;
 
-            insert(make_pair(key, T()));
+            insert(::arx::make_pair(key, T()));
             return this->back().second;
         }
     };
