@@ -37,6 +37,8 @@ namespace arx {
 
     public:
 
+        virtual ~RingBuffer() {}
+
         using iterator = T*;
 
         size_t capacity() const { return N; };
@@ -160,6 +162,7 @@ namespace arx {
     template <typename T, size_t N = ARX_VECTOR_DEFAULT_SIZE>
     struct vector : public RingBuffer<T, N>
     {
+        virtual ~vector() {}
     private:
         using RingBuffer<T, N>::pop;
         using RingBuffer<T, N>::pop_front;
@@ -171,6 +174,7 @@ namespace arx {
     template <typename T, size_t N = ARX_DEQUE_DEFAULT_SIZE>
     struct deque : public RingBuffer<T, N>
     {
+        virtual ~deque() {}
     private:
         using RingBuffer<T, N>::capacity;
         using RingBuffer<T, N>::pop;
@@ -198,6 +202,8 @@ namespace arx {
     struct map : public RingBuffer<pair<Key, T>, N>
     {
         using iterator = typename RingBuffer<pair<Key, T>, N>::iterator;
+
+        virtual ~map() {}
 
         iterator find(const Key& key)
         {
