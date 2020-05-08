@@ -1,6 +1,7 @@
 #include <ArxContainer.h>
 
-arx::deque<int> dq;
+// initialize with initializer_list
+arx::deque<int> dq {1, 2, 3};
 
 void setup()
 {
@@ -8,11 +9,11 @@ void setup()
     delay(2000);
 
     // add contents
-    for (int i = 0; i < 5; ++i)
+    for (size_t i = 4; i <= 5; ++i)
         dq.push_back(i);
 
     // index access
-    for (int i = 0; i < dq.size(); ++i)
+    for (size_t i = 0; i < dq.size(); ++i)
     {
         Serial.print(dq[i]);
         Serial.print(" ");

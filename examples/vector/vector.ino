@@ -1,6 +1,7 @@
 #include <ArxContainer.h>
 
-arx::vector<int> vs;
+// initialize with initializer_list
+arx::vector<int> vs {1, 2, 3};
 
 void setup()
 {
@@ -8,7 +9,7 @@ void setup()
     delay(2000);
 
     // add contents
-    for (size_t i = 0; i < 5; ++i)
+    for (size_t i = 4; i <= 5; ++i)
         vs.push_back(i);
 
     // index access

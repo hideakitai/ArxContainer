@@ -1,6 +1,7 @@
 #include <ArxContainer.h>
 
-arx::map<String, int> mp;
+// initialize with initializer_list
+arx::map<String, int> mp {{"one", 1}, {"two", 2}, {"four", 4}};
 
 void setup()
 {
@@ -8,10 +9,7 @@ void setup()
     delay(2000);
 
     // add contents
-    mp.insert("one", 1);
-    mp.insert("two", 2);
     mp.insert("three", 3);
-    mp["four"] = 4;
     mp["five"] = 5;
 
     // range based access
