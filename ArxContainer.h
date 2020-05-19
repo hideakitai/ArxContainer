@@ -515,9 +515,9 @@ namespace arx {
             return this->end();
         }
 
-        inline T& operator[] (const Key& key)
+        const T& operator[] (const Key& key)
         {
-            iterator it = find(key);
+            const_iterator it = find(key);
             if (it != this->end()) return it->second;
 
             insert(::arx::make_pair(key, T()));
@@ -537,7 +537,6 @@ namespace arx {
         using RingBuffer<pair<Key, T>, N>::emplace_back;
         using RingBuffer<pair<Key, T>, N>::front;
         using RingBuffer<pair<Key, T>, N>::back;
-        using RingBuffer<pair<Key, T>, N>::operator[];
         using RingBuffer<pair<Key, T>, N>::resize;
         using RingBuffer<pair<Key, T>, N>::assign;
         using RingBuffer<pair<Key, T>, N>::shrink_to_fit;
