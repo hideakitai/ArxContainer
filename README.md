@@ -22,6 +22,7 @@ Please use C++ Standard Template Library for other boards.
 
 - AVR (Uno, Nano, Mega, etc.)
 - MEGAAVR (Uno WiFi, Nano Ecery, etc.)
+- SAM (Due)
 - SAMD (Zero, MKR, M0, etc.)
 - SPRESENSE
 
