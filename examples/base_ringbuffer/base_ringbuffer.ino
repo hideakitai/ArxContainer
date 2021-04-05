@@ -2,8 +2,7 @@
 
 ArxRingBuffer<uint8_t, 4> buffer;
 
-void setup()
-{
+void setup() {
     Serial.begin(115200);
 
     buffer.push(1);
@@ -11,22 +10,21 @@ void setup()
     buffer.push(3);
     buffer.push(4);
 
-    for(size_t i = 0; i < buffer.size(); ++i)
+    for (size_t i = 0; i < buffer.size(); ++i)
         Serial.println(buffer[i]);
 
     Serial.println();
     buffer.pop();
 
-    for(auto& b : buffer)
+    for (auto& b : buffer)
         Serial.println(b);
 
     Serial.println();
     buffer.pop();
 
-    for(auto& b : buffer)
+    for (auto& b : buffer)
         Serial.println(b);
 }
 
-void loop()
-{
+void loop() {
 }

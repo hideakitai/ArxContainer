@@ -1,6 +1,8 @@
 #include <ArxContainer.h>
 
-size_t vec_len(std::initializer_list<int> l) { return l.size(); }
+size_t vec_len(std::initializer_list<int> l) {
+    return l.size();
+}
 
 void setup() {
     Serial.begin(115200);
@@ -18,5 +20,4 @@ void setup() {
 }
 
 void loop() {
-
 }
