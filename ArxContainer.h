@@ -173,8 +173,8 @@ public:
 
     iterator erase(iterator p) {
         if (p == end()) return p;
-        for (T* pos = p + 1; pos != end(); ++pos)
-            *(pos - 1) = *pos;
+        for (T* pos = p; pos != end(); ++pos)
+            *pos = *(pos + 1);
         --tail_;
         return p;
     }
