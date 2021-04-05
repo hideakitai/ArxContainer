@@ -166,10 +166,10 @@ public:
     T& operator[](size_t index) { return get(head_ + (int)index); }
 
     iterator begin() { return ptr(head_); }
-    iterator end() { return (queue_ + tail_ + 1); }
+    iterator end() { return (iterator)(queue_ + tail_); }
 
     const_iterator begin() const { return (const_iterator)ptr(head_); }
-    const_iterator end() const { return (const_iterator)(queue_ + tail_ + 1); }
+    const_iterator end() const { return (const_iterator)(queue_ + tail_); }
 
     iterator erase(iterator p) {
         if (p == end()) return p;
