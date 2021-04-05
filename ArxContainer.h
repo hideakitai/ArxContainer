@@ -49,7 +49,7 @@ namespace container {
 template <typename T, size_t N>
 class RingBuffer {
 protected:
-    T queue_[N];
+    T queue_[N + 1];  // add +1 size not to access invalid pointer for end()
     int head_ {0};
     int tail_ {0};
 
