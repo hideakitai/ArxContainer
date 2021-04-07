@@ -327,12 +327,14 @@ public:
     const_iterator cbegin() const { return begin(); }
     const_iterator cend() const { return end(); }
 
-    iterator erase(iterator p) {
-        if (p == end()) return p;
-        for (T* pos = p; pos != end(); ++pos)
-            *pos = *(pos + 1);
+    iterator erase(const iterator& p) {
+        if (!is_valid(p)) return end();
+
+        iterator it_last = begin() + size() - 1;
+        for (iterator it = p; it != it_last; ++it)
+            *it = *(it + 1);
         decrement_tail();
-        return p;
+        return empty() ? end() : p;
     }
 
     void resize(size_t sz) {
@@ -346,8 +348,8 @@ public:
 
     void assign(const_iterator first, const_iterator end) {
         clear();
-        const char* p = first;
-        while (p != end) push(*p++);
+        iterator it = first;
+        while (it != end) push(*(it++));
     }
 
     void shrink_to_fit() {
@@ -363,22 +365,17 @@ public:
         if (pos != end()) {
             size_t sz = 0;
             {
-                iterator it = (iterator)first;
-                for (; it != last; ++it) ++sz;
+                for (iterator it = first; it != last; ++it) ++sz;
             }
             iterator it = end() + sz - 1;
-            for (int i = sz; i > 0; --i, --it) {
+            for (int i = sz; i > 0; --i, --it)
                 *it = *(it - sz);
-            }
-            it = (iterator)pos;
-            for (size_t i = 0; i < sz; ++i) {
+            it = pos;
+            for (size_t i = 0; i < sz; ++i)
                 *it = *(first + i);
-            }
         } else {
-            iterator it = (iterator)first;
-            for (; it != last; ++it) {
+            for (iterator it = first; it != last; ++it)
                 push_back(*it);
-            }
         }
     }
 
@@ -439,6 +436,10 @@ private:
             clear();
             tail_.set(len);
         }
+    }
+
+    bool is_valid(const iterator& it) {
+        return (it.raw_pos() >= head_.raw_pos()) && (it.raw_pos() < tail_.raw_pos());
     }
 };
 
@@ -558,18 +559,19 @@ template <class Key, class T, size_t N = ARX_MAP_DEFAULT_SIZE>
 struct map : public RingBuffer<pair<Key, T>, N> {
     using iterator = typename RingBuffer<pair<Key, T>, N>::iterator;
     using const_iterator = typename RingBuffer<pair<Key, T>, N>::const_iterator;
+    using base = RingBuffer<pair<Key, T>, N>;
 
     map()
-    : RingBuffer<pair<Key, T>, N>() {}
+    : base() {}
     map(std::initializer_list<pair<Key, T> > lst)
-    : RingBuffer<pair<Key, T>, N>(lst) {}
+    : base(lst) {}
 
     // copy
     map(const map& r)
-    : RingBuffer<pair<Key, T>, N>(r) {}
+    : base(r) {}
 
     map& operator=(const map& r) {
-        RingBuffer<pair<Key, T>, N>::operator=(r);
+        base::operator=(r);
         return *this;
     }
 
@@ -578,7 +580,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
     : RingBuffer<T, N>(r) {}
 
     map& operator=(map&& r) {
-        RingBuffer<pair<Key, T>, N>::operator=(r);
+        base::operator=(r);
         return *this;
     }
 
@@ -608,7 +610,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
         if (it == this->end()) {
             this->push(make_pair(key, t));
             b = true;
-            it = this->end() - 1;
+            it = this->begin() + this->size() - 1;
         }
         return {it, b};
     }
@@ -619,9 +621,9 @@ struct map : public RingBuffer<pair<Key, T>, N> {
         if (it == this->end()) {
             this->push(p);
             b = true;
-            it = this->end() - 1;
+            it = this->begin() + this->size() - 1;
         }
-        return {(iterator)it, b};
+        return {it, b};
     }
 
     pair<iterator, bool> emplace(const Key& key, const T& t) {
@@ -648,16 +650,13 @@ struct map : public RingBuffer<pair<Key, T>, N> {
 
     iterator erase(const iterator it) {
         iterator i = (iterator)find(it->first);
-        if (i != this->end()) {
-            return this->erase(i);
-        }
-        return this->end();
+        return base::erase(i);
     }
 
     iterator erase(const size_t index) {
         if (index < this->size()) {
             iterator it = this->begin() + index;
-            return this->erase(it);
+            return base::erase(it);
         }
         return this->end();
     }
@@ -671,20 +670,20 @@ struct map : public RingBuffer<pair<Key, T>, N> {
     }
 
 private:
-    using RingBuffer<pair<Key, T>, N>::capacity;
-    using RingBuffer<pair<Key, T>, N>::data;
-    using RingBuffer<pair<Key, T>, N>::pop;
-    using RingBuffer<pair<Key, T>, N>::pop_front;
-    using RingBuffer<pair<Key, T>, N>::pop_back;
-    using RingBuffer<pair<Key, T>, N>::push;
-    using RingBuffer<pair<Key, T>, N>::push_back;
-    using RingBuffer<pair<Key, T>, N>::push_front;
-    using RingBuffer<pair<Key, T>, N>::emplace_back;
-    using RingBuffer<pair<Key, T>, N>::front;
-    using RingBuffer<pair<Key, T>, N>::back;
-    using RingBuffer<pair<Key, T>, N>::resize;
-    using RingBuffer<pair<Key, T>, N>::assign;
-    using RingBuffer<pair<Key, T>, N>::shrink_to_fit;
+    using base::assign;
+    using base::back;
+    using base::capacity;
+    using base::data;
+    using base::emplace_back;
+    using base::front;
+    using base::pop;
+    using base::pop_back;
+    using base::pop_front;
+    using base::push;
+    using base::push_back;
+    using base::push_front;
+    using base::resize;
+    using base::shrink_to_fit;
 };
 
 }  // namespace arx
