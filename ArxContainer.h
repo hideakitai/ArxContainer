@@ -50,15 +50,15 @@ namespace container {
 
 template <typename T, size_t N>
 class RingBuffer {
-
     class Iterator {
         friend RingBuffer<T, N>;
 
-        T* ptr {nullptr}; // pointer to the first element
+        T* ptr {nullptr};  // pointer to the first element
         int pos {0};
 
         Iterator() {}
-        Iterator(T* ptr, int pos) : ptr(ptr), pos(pos) {}
+        Iterator(T* ptr, int pos)
+        : ptr(ptr), pos(pos) {}
 
     public:
         Iterator(const Iterator& it) {
@@ -99,75 +99,75 @@ class RingBuffer {
             return ptr + index();
         }
 
-        Iterator& operator+ (const Iterator& it) {
+        Iterator& operator+(const Iterator& it) {
             this->pos += it.pos;
             return *this;
         }
-        Iterator& operator+ (const int n) {
+        Iterator& operator+(const int n) {
             this->pos += n;
             return *this;
         }
-        Iterator& operator- (const Iterator& it) {
+        Iterator& operator-(const Iterator& it) {
             this->pos -= it.pos;
             return *this;
         }
-        Iterator& operator- (const int n) {
+        Iterator& operator-(const int n) {
             this->pos -= n;
             return *this;
         }
-        Iterator& operator+= (const Iterator& it) {
+        Iterator& operator+=(const Iterator& it) {
             this->pos += it.pos;
             return *this;
         }
-        Iterator& operator+= (const int n) {
+        Iterator& operator+=(const int n) {
             this->pos += n;
             return *this;
         }
-        Iterator& operator-= (const Iterator& it) {
+        Iterator& operator-=(const Iterator& it) {
             this->pos -= it.pos;
             return *this;
         }
-        Iterator& operator-= (const int n) {
+        Iterator& operator-=(const int n) {
             this->pos -= n;
             return *this;
         }
 
         // prefix increment/decrement
-        Iterator& operator++ () {
+        Iterator& operator++() {
             ++pos;
             return *this;
         }
-        Iterator& operator-- () {
+        Iterator& operator--() {
             --pos;
             return *this;
         }
         // postfix increment/decrement
-        Iterator operator++ (int) {
+        Iterator operator++(int) {
             Iterator it = *this;
             ++pos;
             return it;
         }
-        Iterator operator-- (int) {
+        Iterator operator--(int) {
             Iterator it = *this;
             --pos;
             return it;
         }
 
-        Iterator& operator= (const Iterator& it) {
+        Iterator& operator=(const Iterator& it) {
             this->ptr = it.ptr;
             this->pos = it.pos;
             return *this;
         }
-        Iterator& operator= (Iterator&& it) {
+        Iterator& operator=(Iterator&& it) {
             this->ptr = container::detail::move(it.ptr);
             this->pos = container::detail::move(it.pos);
             return *this;
         }
 
-        bool operator== (const Iterator& it) const {
+        bool operator==(const Iterator& it) const {
             return (it.ptr == ptr) && (it.pos == pos);
         }
-        bool operator!= (const Iterator& it) const {
+        bool operator!=(const Iterator& it) const {
             return !(*this == it);
         }
         bool operator<(const Iterator& it) const {
@@ -211,15 +211,13 @@ public:
     RingBuffer()
     : queue_()
     , head_(queue_, 0)
-    , tail_(queue_, 0)
-    {
+    , tail_(queue_, 0) {
     }
 
     RingBuffer(std::initializer_list<T> lst)
     : queue_()
     , head_(queue_, 0)
-    , tail_(queue_, 0)
-    {
+    , tail_(queue_, 0) {
         for (auto it = lst.begin(); it != lst.end(); ++it) {
             push_back(*it);
         }
