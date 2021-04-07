@@ -324,8 +324,8 @@ public:
     iterator begin() { return empty() ? Iterator() : head_; }
     iterator end() { return empty() ? Iterator() : tail_; }
 
-    const_iterator cbegin() const { return begin(); }
-    const_iterator cend() const { return end(); }
+    const_iterator begin() const { return begin(); }
+    const_iterator end() const { return end(); }
 
     iterator erase(const iterator& p) {
         if (!is_valid(p)) return end();
