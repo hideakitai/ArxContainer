@@ -423,7 +423,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
 
     pair<iterator, bool> insert(const pair<Key, T>& p) {
         bool b {false};
-        const_iterator it = find(p.first);
+        iterator it = find(p.first);
         if (it == this->end()) {
             this->push(p);
             b = true;
