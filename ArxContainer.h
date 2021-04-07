@@ -99,32 +99,32 @@ class RingBuffer {
             return ptr + index();
         }
 
-        Iterator& operator+(const Iterator& it) {
-            this->pos += it.pos;
-            return *this;
+        Iterator operator+(const Iterator& rhs) {
+            Iterator it(this->ptr, this->pos + rhs.pos);
+            return it;
         }
-        Iterator& operator+(const int n) {
-            this->pos += n;
-            return *this;
+        Iterator operator+(const int n) {
+            Iterator it(this->ptr, this->pos + n);
+            return it;
         }
-        Iterator& operator-(const Iterator& it) {
-            this->pos -= it.pos;
-            return *this;
+        Iterator operator-(const Iterator& rhs) {
+            Iterator it(this->ptr, this->pos - rhs.pos);
+            return it;
         }
-        Iterator& operator-(const int n) {
-            this->pos -= n;
-            return *this;
+        Iterator operator-(const int n) {
+            Iterator it(this->ptr, this->pos - n);
+            return it;
         }
-        Iterator& operator+=(const Iterator& it) {
-            this->pos += it.pos;
+        Iterator& operator+=(const Iterator& rhs) {
+            this->pos += rhs.pos;
             return *this;
         }
         Iterator& operator+=(const int n) {
             this->pos += n;
             return *this;
         }
-        Iterator& operator-=(const Iterator& it) {
-            this->pos -= it.pos;
+        Iterator& operator-=(const Iterator& rhs) {
+            this->pos -= rhs.pos;
             return *this;
         }
         Iterator& operator-=(const int n) {
@@ -153,34 +153,34 @@ class RingBuffer {
             return it;
         }
 
-        Iterator& operator=(const Iterator& it) {
-            this->ptr = it.ptr;
-            this->pos = it.pos;
+        Iterator& operator=(const Iterator& rhs) {
+            this->ptr = rhs.ptr;
+            this->pos = rhs.pos;
             return *this;
         }
-        Iterator& operator=(Iterator&& it) {
-            this->ptr = container::detail::move(it.ptr);
-            this->pos = container::detail::move(it.pos);
+        Iterator& operator=(Iterator&& rhs) {
+            this->ptr = container::detail::move(rhs.ptr);
+            this->pos = container::detail::move(rhs.pos);
             return *this;
         }
 
-        bool operator==(const Iterator& it) const {
-            return (it.ptr == ptr) && (it.pos == pos);
+        bool operator==(const Iterator& rhs) const {
+            return (rhs.ptr == ptr) && (rhs.pos == pos);
         }
-        bool operator!=(const Iterator& it) const {
-            return !(*this == it);
+        bool operator!=(const Iterator& rhs) const {
+            return !(*this == rhs);
         }
-        bool operator<(const Iterator& it) const {
-            return pos < it.pos;
+        bool operator<(const Iterator& rhs) const {
+            return pos < rhs.pos;
         }
-        bool operator<=(const Iterator& it) const {
-            return pos <= it.pos;
+        bool operator<=(const Iterator& rhs) const {
+            return pos <= rhs.pos;
         }
-        bool operator>(const Iterator& it) const {
-            return pos > it.pos;
+        bool operator>(const Iterator& rhs) const {
+            return pos > rhs.pos;
         }
-        bool operator>=(const Iterator& it) const {
-            return pos >= it.pos;
+        bool operator>=(const Iterator& rhs) const {
+            return pos >= rhs.pos;
         }
 
     private:
@@ -323,9 +323,8 @@ public:
 
     iterator begin() { return empty() ? Iterator() : head_; }
     iterator end() { return empty() ? Iterator() : tail_; }
-
-    const_iterator begin() const { return begin(); }
-    const_iterator end() const { return end(); }
+    const_iterator begin() const { return empty() ? Iterator() : head_; }
+    const_iterator end() const { return empty() ? Iterator() : tail_; }
 
     iterator erase(const iterator& p) {
         if (!is_valid(p)) return end();
@@ -648,7 +647,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
         return find(key)->second;
     }
 
-    iterator erase(const iterator it) {
+    iterator erase(const iterator& it) {
         iterator i = (iterator)find(it->first);
         return base::erase(i);
     }
@@ -656,7 +655,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
     iterator erase(const size_t index) {
         if (index < this->size()) {
             iterator it = this->begin() + index;
-            return base::erase(it);
+            erase(it);
         }
         return this->end();
     }
