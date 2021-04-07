@@ -332,6 +332,7 @@ public:
         iterator it_last = begin() + size() - 1;
         for (iterator it = p; it != it_last; ++it)
             *it = *(it + 1);
+        *it_last = T();
         decrement_tail();
         return empty() ? end() : p;
     }
