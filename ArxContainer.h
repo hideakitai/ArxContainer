@@ -384,6 +384,24 @@ public:
         }
     }
 
+    void insert(const_iterator pos, const T* first, const T* last) {
+        if (pos != end()) {
+            size_t sz = 0;
+            {
+                for (const T* it = first; it != last; ++it) ++sz;
+            }
+            iterator it = end() + sz - 1;
+            for (int i = sz; i > 0; --i, --it)
+                *it = *(it - sz);
+            it = pos;
+            for (size_t i = 0; i < sz; ++i)
+                *it = *(first + i);
+        } else {
+            for (const T* it = first; it != last; ++it)
+                push_back(*it);
+        }
+    }
+
 private:
     T& get(const Iterator& it) {
         return queue_[it.index()];
