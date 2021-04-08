@@ -348,8 +348,13 @@ public:
 
     void assign(const_iterator first, const_iterator end) {
         clear();
-        iterator it = first;
-        while (it != end) push(*(it++));
+        while (first != end) push(*(first++));
+    }
+
+    void assign(const T* first, const T* end) {
+        clear();
+        // T* it = first;
+        while (first != end) push(*(first++));
     }
 
     void shrink_to_fit() {
