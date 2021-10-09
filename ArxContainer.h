@@ -16,6 +16,7 @@
 #if ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L  // Have libstdc++11
 
 #include <vector>
+#include <array>
 #include <deque>
 #include <map>
 
@@ -362,6 +363,14 @@ public:
         // dummy
     }
 
+    void fill(const T& v) {
+        iterator it = begin();
+        while (it != end()) {
+            *it = v;
+            ++it;
+        }
+    }
+
     void insert(const_iterator pos, const_iterator first, const_iterator last) {
         if (pos != end()) {
             size_t sz = 0;
@@ -511,6 +520,45 @@ private:
     using RingBuffer<T, N>::push;
     using RingBuffer<T, N>::push_front;
     using RingBuffer<T, N>::emplace;
+    using RingBuffer<T, N>::fill;
+};
+
+template <typename T, size_t N>
+struct array : public RingBuffer<T, N> {
+    using iterator = typename RingBuffer<T, N>::iterator;
+    using const_iterator = typename RingBuffer<T, N>::const_iterator;
+
+    array()
+    : RingBuffer<T, N>() {}
+    array(std::initializer_list<T> lst)
+    : RingBuffer<T, N>(lst) {}
+
+    // copy
+    array(const array& r)
+    : RingBuffer<T, N>(r) {}
+
+    array& operator=(const array& r) {
+        RingBuffer<T, N>::operator=(r);
+        return *this;
+    }
+
+    // move
+    array(array&& r)
+    : RingBuffer<T, N>(r) {}
+
+    array& operator=(array&& r) {
+        RingBuffer<T, N>::operator=(r);
+        return *this;
+    }
+
+    virtual ~array() {}
+
+private:
+    using RingBuffer<T, N>::pop;
+    using RingBuffer<T, N>::pop_front;
+    using RingBuffer<T, N>::push;
+    using RingBuffer<T, N>::push_front;
+    using RingBuffer<T, N>::emplace;
 };
 
 template <typename T, size_t N = ARX_DEQUE_DEFAULT_SIZE>
@@ -551,6 +599,7 @@ private:
     using RingBuffer<T, N>::assign;
     using RingBuffer<T, N>::begin;
     using RingBuffer<T, N>::end;
+    using RingBuffer<T, N>::fill;
 };
 
 template <class T1, class T2>
@@ -708,6 +757,7 @@ private:
     using base::push_front;
     using base::resize;
     using base::shrink_to_fit;
+    using base::fill;
 };
 
 }  // namespace arx
