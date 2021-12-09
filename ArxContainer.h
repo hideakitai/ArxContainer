@@ -96,19 +96,19 @@ class RingBuffer {
             return ptr + index();
         }
 
-        Iterator operator+(const Iterator& rhs) {
+        Iterator operator+(const Iterator& rhs) const {
             Iterator it(this->ptr, this->pos + rhs.pos);
             return it;
         }
-        Iterator operator+(const int n) {
+        Iterator operator+(const int n) const {
             Iterator it(this->ptr, this->pos + n);
             return it;
         }
-        Iterator operator-(const Iterator& rhs) {
+        Iterator operator-(const Iterator& rhs) const {
             Iterator it(this->ptr, this->pos - rhs.pos);
             return it;
         }
-        Iterator operator-(const int n) {
+        Iterator operator-(const int n) const {
             Iterator it(this->ptr, this->pos - n);
             return it;
         }
