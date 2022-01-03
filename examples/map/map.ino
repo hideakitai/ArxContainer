@@ -33,6 +33,13 @@ void setup() {
     Serial.println(mp["four"]);
     Serial.print("five  = ");
     Serial.println(mp["five"]);
+
+    // const ref access
+    const auto& mp_ro = mp;   
+    Serial.print("const map one   = ");
+    Serial.println(mp_ro.at("one"));
+    Serial.print("const map four  = ");
+    Serial.println(mp_ro.at("four"));
 }
 
 void loop() {
