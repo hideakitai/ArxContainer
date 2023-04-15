@@ -652,7 +652,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
 
     // move
     map(map&& r)
-    : RingBuffer<T, N>(r) {}
+    : base(r) {}
 
     map& operator=(map&& r) {
         base::operator=(r);
