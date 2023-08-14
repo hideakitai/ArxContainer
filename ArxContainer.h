@@ -47,23 +47,23 @@ namespace container {
 
 template <typename T, size_t N>
 class RingBuffer {
-    class Iterator {
+    class ConstIterator {
         friend RingBuffer<T, N>;
 
         T* ptr {nullptr};  // pointer to the first element
         int pos {0};
 
-        Iterator() {}
-        Iterator(T* ptr, int pos)
+        ConstIterator(T* ptr, int pos)
         : ptr(ptr), pos(pos) {}
 
     public:
-        Iterator(const Iterator& it) {
+        ConstIterator() {}
+        ConstIterator(const ConstIterator& it) {
             this->ptr = it.ptr;
             this->pos = it.pos;
         }
 
-        Iterator(Iterator&& it) {
+        ConstIterator(ConstIterator&& it) {
             this->ptr = container::detail::move(it.ptr);
             this->pos = container::detail::move(it.pos);
         }
@@ -83,100 +83,94 @@ class RingBuffer {
                 return N - (abs(p) % (N + 1));
         }
 
-        T& operator*() {
-            return *(ptr + index());
-        }
         const T& operator*() const {
             return *(ptr + index());
-        }
-        T* operator->() {
-            return ptr + index();
         }
         const T* operator->() const {
             return ptr + index();
         }
 
-        Iterator operator+(const Iterator& rhs) const {
-            Iterator it(this->ptr, this->pos + rhs.pos);
+        ConstIterator operator+(const ConstIterator& rhs) const {
+            ConstIterator it(this->ptr, this->pos + rhs.pos);
             return it;
         }
-        Iterator operator+(const int n) const {
-            Iterator it(this->ptr, this->pos + n);
+        ConstIterator operator+(const int n) const {
+            ConstIterator it(this->ptr, this->pos + n);
             return it;
         }
-        Iterator operator-(const Iterator& rhs) const {
-            Iterator it(this->ptr, this->pos - rhs.pos);
+        ConstIterator operator-(const ConstIterator& rhs) const {
+            ConstIterator it(this->ptr, this->pos - rhs.pos);
             return it;
         }
-        Iterator operator-(const int n) const {
-            Iterator it(this->ptr, this->pos - n);
+        ConstIterator operator-(const int n) const {
+            ConstIterator it(this->ptr, this->pos - n);
             return it;
         }
-        Iterator& operator+=(const Iterator& rhs) {
+        ConstIterator& operator+=(const ConstIterator& rhs) {
             this->pos += rhs.pos;
             return *this;
         }
-        Iterator& operator+=(const int n) {
+        ConstIterator& operator+=(const int n) {
             this->pos += n;
             return *this;
         }
-        Iterator& operator-=(const Iterator& rhs) {
+        ConstIterator& operator-=(const ConstIterator& rhs) {
             this->pos -= rhs.pos;
             return *this;
         }
-        Iterator& operator-=(const int n) {
+        ConstIterator& operator-=(const int n) {
             this->pos -= n;
             return *this;
         }
 
         // prefix increment/decrement
-        Iterator& operator++() {
+        ConstIterator& operator++() {
             ++pos;
             return *this;
         }
-        Iterator& operator--() {
+        ConstIterator& operator--() {
             --pos;
             return *this;
         }
         // postfix increment/decrement
-        Iterator operator++(int) {
-            Iterator it = *this;
+        ConstIterator operator++(int) {
+            ConstIterator it = *this;
             ++pos;
             return it;
         }
-        Iterator operator--(int) {
-            Iterator it = *this;
+        ConstIterator operator--(int) {
+            ConstIterator it = *this;
             --pos;
             return it;
         }
 
-        Iterator& operator=(const Iterator& rhs) {
+        ConstIterator& operator=(const ConstIterator& rhs) {
             this->ptr = rhs.ptr;
             this->pos = rhs.pos;
             return *this;
         }
-        Iterator& operator=(Iterator&& rhs) {
+        ConstIterator& operator=(ConstIterator&& rhs) {
             this->ptr = container::detail::move(rhs.ptr);
             this->pos = container::detail::move(rhs.pos);
             return *this;
         }
 
-        bool operator==(const Iterator& rhs) const {
+        bool operator==(const ConstIterator& rhs) const {
             return (rhs.ptr == ptr) && (rhs.pos == pos);
         }
-        bool operator!=(const Iterator& rhs) const {
+        bool operator!=(const ConstIterator& rhs) const {
             return !(*this == rhs);
         }
-        bool operator<(const Iterator& rhs) const {
+        bool operator<(const ConstIterator& rhs) const {
             return pos < rhs.pos;
         }
-        bool operator<=(const Iterator& rhs) const {
+        bool operator<=(const ConstIterator& rhs) const {
             return pos <= rhs.pos;
         }
-        bool operator>(const Iterator& rhs) const {
+        bool operator>(const ConstIterator& rhs) const {
             return pos > rhs.pos;
         }
-        bool operator>=(const Iterator& rhs) const {
+        bool operator>=(const ConstIterator& rhs) const {
             return pos >= rhs.pos;
         }
 
@@ -193,9 +187,22 @@ class RingBuffer {
             pos = 0;
         }
     };
+    
+    class Iterator : public ConstIterator {
+    public:
+        using ConstIterator::ConstIterator;
+        
+        T& operator*() const {
+            return *(ptr + ConstIterator::index());
+        }
+        T* operator->() const {
+            return ptr + ConstIterator::index();
+        }
+    };
 
 protected:
     friend class Iterator;
+    friend class ConstIterator;
 
     T queue_[N];
     Iterator head_;
@@ -203,7 +210,7 @@ protected:
 
 public:
     using iterator = Iterator;
-    using const_iterator = const Iterator;
+    using const_iterator = ConstIterator;
 
     RingBuffer()
     : queue_()
@@ -223,14 +230,14 @@ public:
     // copy
     explicit RingBuffer(const RingBuffer& r)
     : queue_()
-    , head_(r.head_)
-    , tail_(r.tail_) {
+    , head_(queue_, r.head_.raw_pos())
+    , tail_(queue_, r.tail_.raw_pos()) {
         for (size_t i = 0; i < r.size(); ++i)
             queue_[i] = r.queue_[i];
     }
     RingBuffer& operator=(const RingBuffer& r) {
-        head_ = r.head_;
-        tail_ = r.tail_;
+        head_.set(r.head_.raw_pos());
+        tail_.set(r.tail_.raw_pos());
         for (size_t i = 0; i < r.size(); ++i)
             queue_[i] = r.queue_[i];
         return *this;
@@ -309,8 +316,8 @@ public:
     void emplace_back(const T& data) { push_back(data); }
     void emplace_back(T&& data) { push_back(data); }
 
-    const T& front() const { return get(head_); };
-    T& front() { return get(head_); };
+    const T& front() const { return get(head_); }
+    T& front() { return get(head_); }
 
     const T& back() const { return get(size() - 1); }
     T& back() { return get(size() - 1); }
@@ -320,8 +327,8 @@ public:
 
     iterator begin() { return empty() ? Iterator() : head_; }
     iterator end() { return empty() ? Iterator() : tail_; }
-    const_iterator begin() const { return empty() ? Iterator() : head_; }
-    const_iterator end() const { return empty() ? Iterator() : tail_; }
+    const_iterator begin() const { return empty() ? ConstIterator() : static_cast<ConstIterator>(head_); }
+    const_iterator end() const { return empty() ? ConstIterator() : static_cast<ConstIterator>(tail_); }
 
     iterator erase(const iterator& p) {
         if (!is_valid(p)) return end();
@@ -466,7 +473,7 @@ private:
         }
     }
 
-    bool is_valid(const iterator& it) {
+    bool is_valid(const iterator& it) const {
         return (it.raw_pos() >= head_.raw_pos()) && (it.raw_pos() < tail_.raw_pos());
     }
 };
@@ -645,7 +652,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
 
     // move
     map(map&& r)
-    : RingBuffer<T, N>(r) {}
+    : base(r) {}
 
     map& operator=(map&& r) {
         base::operator=(r);
