@@ -187,11 +187,31 @@ class RingBuffer {
             pos = 0;
         }
     };
-    
+
     class Iterator : public ConstIterator {
     public:
         using ConstIterator::ConstIterator;
-        
+
+        Iterator(const Iterator&) = default;
+        Iterator& operator=(const Iterator&) = default;
+        Iterator(Iterator&&) = default;
+        Iterator() = default;
+        Iterator& operator=(Iterator&&) = default;
+
+        Iterator(const ConstIterator& cit) {
+            this->ptr = cit.ptr;
+            this->pos = cit.pos;
+        }
+
+        Iterator& operator=(const ConstIterator& rhs) {
+            ConstIterator::operator=(rhs);
+            return *this;
+        }
+        Iterator& operator=(ConstIterator&& rhs) noexcept {
+            ConstIterator::operator=(rhs);
+            return *this;
+        }
+
         T& operator*() const {
             return *(ptr + ConstIterator::index());
         }
