@@ -324,12 +324,12 @@ public:
         increment_tail();
     };
     void push_front(const T& data) {
-        get(head_) = data;
         decrement_head();
+        get(head_) = data;
     };
     void push_front(T&& data) {
-        get(head_) = data;
         decrement_head();
+        get(head_) = data;
     };
     void emplace(const T& data) { push(data); }
     void emplace(T&& data) { push(data); }
