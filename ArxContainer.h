@@ -68,19 +68,21 @@ class RingBuffer {
             this->pos = container::detail::move(it.pos);
         }
 
-        int index() const {
+    private:
+        static int pos_wrap_around(const int pos) {
             if (pos >= 0)
                 return pos % N;
             else
-                return N - (abs(pos) % (N + 1));
+                return (N - 1) - (abs(pos + 1) % N);
+        }
+
+    public:
+        int index() const {
+            return pos_wrap_around(pos);
         }
 
         int index_with_offset(const int i) const {
-            const int p = pos + i;
-            if (p >= 0)
-                return p % N;
-            else
-                return N - (abs(p) % (N + 1));
+            return pos_wrap_around(pos + i);
         }
 
         const T& operator*() const {
