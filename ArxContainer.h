@@ -254,14 +254,18 @@ public:
     : queue_()
     , head_(queue_, r.head_.raw_pos())
     , tail_(queue_, r.tail_.raw_pos()) {
-        for (size_t i = 0; i < r.size(); ++i)
-            queue_[i] = r.queue_[i];
+        for (size_t i = 0; i < r.size(); ++i) {
+            int pos = ConstIterator::pos_wrap_around(r.head_.raw_pos() + (int)i);
+            queue_[pos] = r.queue_[pos];
+        }
     }
     RingBuffer& operator=(const RingBuffer& r) {
         head_.set(r.head_.raw_pos());
         tail_.set(r.tail_.raw_pos());
-        for (size_t i = 0; i < r.size(); ++i)
-            queue_[i] = r.queue_[i];
+        for (size_t i = 0; i < r.size(); ++i) {
+            int pos = ConstIterator::pos_wrap_around(r.head_.raw_pos() + (int)i);
+            queue_[pos] = r.queue_[pos];
+        }
         return *this;
     }
 
@@ -269,15 +273,19 @@ public:
     RingBuffer(RingBuffer&& r) {
         head_ = container::detail::move(r.head_);
         tail_ = container::detail::move(r.tail_);
-        for (size_t i = 0; i < r.size(); ++i)
-            queue_[i] = container::detail::move(r.queue_[i]);
+        for (size_t i = 0; i < r.size(); ++i) {
+            int pos = ConstIterator::pos_wrap_around(r.head_.raw_pos() + (int)i);
+            queue_[pos] = container::detail::move(r.queue_[pos]);
+        }
     }
 
     RingBuffer& operator=(RingBuffer&& r) {
         head_ = container::detail::move(r.head_);
         tail_ = container::detail::move(r.tail_);
-        for (size_t i = 0; i < r.size(); ++i)
-            queue_[i] = container::detail::move(r.queue_[i]);
+        for (size_t i = 0; i < r.size(); ++i) {
+            int pos = ConstIterator::pos_wrap_around(r.head_.raw_pos() + (int)i);
+            queue_[pos] = container::detail::move(r.queue_[pos]);
+        }
         return *this;
     }
 
