@@ -408,40 +408,56 @@ public:
         }
     }
 
+    // https://en.cppreference.com/w/cpp/container/vector/insert
     void insert(const_iterator pos, const_iterator first, const_iterator last) {
-        if (pos != end()) {
-            size_t sz = 0;
-            {
-                for (iterator it = first; it != last; ++it) ++sz;
-            }
-            iterator it = end() + sz - 1;
-            for (int i = sz; i > 0; --i, --it)
-                *it = *(it - sz);
-            it = pos;
-            for (size_t i = 0; i < sz; ++i)
-                *it = *(first + i);
-        } else {
-            for (iterator it = first; it != last; ++it)
-                push_back(*it);
+        if (!is_valid(pos) && pos != end())
+            return;
+
+        size_t sz = 0;
+        {
+            for (const_iterator it = first; it != last; ++it) ++sz;
+        }
+        size_t new_sz = size() + sz;
+        if (new_sz > capacity())
+            new_sz = capacity();
+
+        iterator it = begin() + new_sz - 1;
+        while (it != pos) {
+            *it = *(it - sz);
+            --it;
+        }
+        for (size_t i = 0; i < sz; ++i) {
+            *(iterator)(it + i) = *(first + i);
+            if (size() < capacity() || (it + i) == end())
+                increment_tail();
         }
     }
 
     void insert(const_iterator pos, const T* first, const T* last) {
-        if (pos != end()) {
-            size_t sz = 0;
-            {
-                for (const T* it = first; it != last; ++it) ++sz;
-            }
-            iterator it = end() + sz - 1;
-            for (int i = sz; i > 0; --i, --it)
-                *it = *(it - sz);
-            it = pos;
-            for (size_t i = 0; i < sz; ++i)
-                *it = *(first + i);
-        } else {
-            for (const T* it = first; it != last; ++it)
-                push_back(*it);
+        if (!is_valid(pos) && pos != end())
+            return;
+
+        size_t sz = last - first;
+
+        size_t new_sz = size() + sz;
+        if (new_sz > capacity())
+            new_sz = capacity();
+            
+        iterator it = begin() + new_sz - 1;
+        while (it != pos) {
+            *it = *(it - sz);
+            --it;
         }
+        for (size_t i = 0; i < sz; ++i) {
+            *(iterator)(it + i) = *(first + i);
+            if (size() < capacity() || (it + i) == end())
+                increment_tail();
+        }
+    }
+
+    void insert(const_iterator pos, const T& val) {
+        const T* ptr = &val;
+        insert(pos, ptr, ptr + 1);
     }
 
 private:
