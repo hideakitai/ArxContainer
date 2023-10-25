@@ -511,11 +511,13 @@ private:
     void resolve_overflow() {
         if (empty())
             clear();
-        else if (head_.raw_pos() > tail_.raw_pos()) {
-            // the same value will be obtained regardless of which of the head tail overflows
-            int len = (INT_MAX - head_.raw_pos()) + (tail_.raw_pos() - INT_MIN);
-            clear();
-            tail_.set(len);
+        else if (head_.raw_pos() <= ((int)INT_MIN + (int)capacity()) \
+                || tail_.raw_pos() >= ((int)INT_MAX - (int)capacity())) {
+            // +/- capacity(): reserve some space for pointer/iterator arithmetics
+            // pointer are newly set N+1 steps before the overflow occurs
+            int len = size();
+            head_.set(begin().index());
+            tail_.set(head_.raw_pos() + len);
         }
     }
 
