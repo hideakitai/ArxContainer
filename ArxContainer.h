@@ -716,8 +716,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
     }
 
     const_iterator find(const Key& key) const {
-        for (size_t i = 0; i < this->size(); ++i) {
-            const_iterator it = this->begin() + i;
+        for (const_iterator it = this->begin(); it != this->end(); ++it) {
             if (key == it->first)
                 return it;
         }
@@ -725,8 +724,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
     }
 
     iterator find(const Key& key) {
-        for (size_t i = 0; i < this->size(); ++i) {
-            iterator it = this->begin() + i;
+        for (iterator it = this->begin(); it != this->end(); ++it) {
             if (key == it->first)
                 return it;
         }
@@ -734,14 +732,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
     }
 
     pair<iterator, bool> insert(const Key& key, const T& t) {
-        bool b {false};
-        iterator it = find(key);
-        if (it == this->end()) {
-            this->push(make_pair(key, t));
-            b = true;
-            it = this->begin() + this->size() - 1;
-        }
-        return {it, b};
+        return insert(make_pair(key, t));
     }
 
     pair<iterator, bool> insert(const pair<Key, T>& p) {
@@ -763,18 +754,25 @@ struct map : public RingBuffer<pair<Key, T>, N> {
         return insert(p);
     }
 
+private:
+    T& empty_value() const {
+        static T val;
+        val = T(); // fresh empty value every time
+        return val;
+    }
+public:
     const T& at(const Key& key) const {
-        // iterator it = find(key);
-        // if (it != this->end()) return it->second;
-        // return T();
-        return find(key)->second;
+        const_iterator it = find(key);
+        if (it != this->end()) return it->second;
+        return empty_value();
+        //return find(key)->second;
     }
 
     T& at(const Key& key) {
-        // iterator it = find(key);
-        // if (it != this->end()) return it->second;
-        // return T();
-        return find(key)->second;
+        iterator it = find(key);
+        if (it != this->end()) return it->second;
+        return empty_value();
+        //return find(key)->second;
     }
 
     iterator erase(const const_iterator& it) {
@@ -787,10 +785,12 @@ struct map : public RingBuffer<pair<Key, T>, N> {
         return base::erase(i);
     }
 
+    // erase() will cause compile error if map's Key is 'unsigned int'
+    // => collision of this method with erase(const Key&)
     iterator erase(const size_t index) {
         if (index < this->size()) {
             iterator it = this->begin() + index;
-            erase(it);
+            return erase(it);
         }
         return this->end();
     }
