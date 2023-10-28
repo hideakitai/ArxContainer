@@ -47,13 +47,14 @@ namespace container {
 
 template <typename T, size_t N>
 class RingBuffer {
+    class Iterator;
     class ConstIterator {
         friend RingBuffer<T, N>;
 
-        T* ptr {nullptr};  // pointer to the first element
+        const T* ptr {nullptr};  // pointer to the first element
         int pos {0};
 
-        ConstIterator(T* ptr, int pos)
+        ConstIterator(const T* ptr, int pos)
         : ptr(ptr), pos(pos) {}
 
     public:
@@ -66,6 +67,22 @@ class RingBuffer {
         ConstIterator(ConstIterator&& it) {
             this->ptr = container::detail::move(it.ptr);
             this->pos = container::detail::move(it.pos);
+        }
+
+        ConstIterator& operator=(const ConstIterator& rhs) {
+            this->ptr = rhs.ptr;
+            this->pos = rhs.pos;
+            return *this;
+        }
+        ConstIterator& operator=(ConstIterator&& rhs) {
+            this->ptr = container::detail::move(rhs.ptr);
+            this->pos = container::detail::move(rhs.pos);
+            return *this;
+        }
+
+        // const-like conversion ConstIterator => Iterator
+        Iterator to_iterator() const {
+            return Iterator(this->ptr, this->pos);
         }
 
     private:
@@ -92,32 +109,17 @@ class RingBuffer {
             return ptr + index();
         }
 
-        ConstIterator operator+(const ConstIterator& rhs) const {
-            ConstIterator it(this->ptr, this->pos + rhs.pos);
-            return it;
-        }
         ConstIterator operator+(const int n) const {
-            ConstIterator it(this->ptr, this->pos + n);
-            return it;
+            return ConstIterator(this->ptr, this->pos + n);
         }
-        ConstIterator operator-(const ConstIterator& rhs) const {
-            ConstIterator it(this->ptr, this->pos - rhs.pos);
-            return it;
+        int operator-(const ConstIterator& rhs) const {
+            return this->pos - rhs.pos;
         }
         ConstIterator operator-(const int n) const {
-            ConstIterator it(this->ptr, this->pos - n);
-            return it;
-        }
-        ConstIterator& operator+=(const ConstIterator& rhs) {
-            this->pos += rhs.pos;
-            return *this;
+            return ConstIterator(this->ptr, this->pos - n);
         }
         ConstIterator& operator+=(const int n) {
             this->pos += n;
-            return *this;
-        }
-        ConstIterator& operator-=(const ConstIterator& rhs) {
-            this->pos -= rhs.pos;
             return *this;
         }
         ConstIterator& operator-=(const int n) {
@@ -144,17 +146,6 @@ class RingBuffer {
             ConstIterator it = *this;
             --pos;
             return it;
-        }
-
-        ConstIterator& operator=(const ConstIterator& rhs) {
-            this->ptr = rhs.ptr;
-            this->pos = rhs.pos;
-            return *this;
-        }
-        ConstIterator& operator=(ConstIterator&& rhs) {
-            this->ptr = container::detail::move(rhs.ptr);
-            this->pos = container::detail::move(rhs.pos);
-            return *this;
         }
 
         bool operator==(const ConstIterator& rhs) const {
@@ -191,34 +182,62 @@ class RingBuffer {
     };
 
     class Iterator : public ConstIterator {
-    public:
-        using ConstIterator::ConstIterator;
+        friend RingBuffer<T, N>;
 
-        Iterator(const Iterator&) = default;
-        Iterator& operator=(const Iterator&) = default;
-        Iterator(Iterator&&) = default;
+        Iterator(const T* ptr, int pos) {
+            this->ptr = ptr;
+            this->pos = pos;
+        }
+
+    public:
         Iterator() = default;
+        Iterator(const Iterator&) = default;
+        Iterator(Iterator&&) = default;
+        Iterator& operator=(const Iterator&) = default;
         Iterator& operator=(Iterator&&) = default;
 
-        Iterator(const ConstIterator& cit) {
-            this->ptr = cit.ptr;
-            this->pos = cit.pos;
+        T& operator*() {
+            return *(const_cast<T*>(this->ptr) + this->index());
+        }
+        T* operator->() {
+            return const_cast<T*>(this->ptr) + this->index();
         }
 
-        Iterator& operator=(const ConstIterator& rhs) {
-            ConstIterator::operator=(rhs);
+        // all inherited methods that return ConstIterator must be reimplemented
+        Iterator operator+(const int n) const {
+            return Iterator(this->ptr, this->pos + n);
+        }
+        Iterator operator-(const int n) const {
+            return Iterator(this->ptr, this->pos - n);
+        }
+        Iterator& operator+=(const int n) {
+            this->pos += n;
             return *this;
         }
-        Iterator& operator=(ConstIterator&& rhs) noexcept {
-            ConstIterator::operator=(rhs);
+        Iterator& operator-=(const int n) {
+            this->pos -= n;
             return *this;
         }
 
-        T& operator*() const {
-            return *(ptr + ConstIterator::index());
+        // prefix increment/decrement
+        Iterator& operator++() {
+            ++(this->pos);
+            return *this;
         }
-        T* operator->() const {
-            return ptr + ConstIterator::index();
+        Iterator& operator--() {
+            --(this->pos);
+            return *this;
+        }
+        // postfix increment/decrement
+        Iterator operator++(int) {
+            Iterator it = *this;
+            ++(this->pos);
+            return it;
+        }
+        Iterator operator--(int) {
+            Iterator it = *this;
+            --(this->pos);
+            return it;
         }
     };
 
@@ -360,15 +379,16 @@ public:
     const_iterator begin() const { return empty() ? ConstIterator() : static_cast<ConstIterator>(head_); }
     const_iterator end() const { return empty() ? ConstIterator() : static_cast<ConstIterator>(tail_); }
 
-    iterator erase(const iterator& p) {
+    // https://en.cppreference.com/w/cpp/container/vector/erase
+    iterator erase(const const_iterator& p) {
         if (!is_valid(p)) return end();
 
-        iterator it_last = begin() + size() - 1;
-        for (iterator it = p; it != it_last; ++it)
+        iterator it_last = end() - 1;
+        for (iterator it = p.to_iterator(); it != it_last; ++it)
             *it = *(it + 1);
         *it_last = T();
         decrement_tail();
-        return empty() ? end() : p;
+        return empty() ? end() : p.to_iterator();
     }
 
     void resize(size_t sz) {
@@ -409,14 +429,12 @@ public:
     }
 
     // https://en.cppreference.com/w/cpp/container/vector/insert
-    void insert(const_iterator pos, const_iterator first, const_iterator last) {
+    void insert(const const_iterator& pos, const const_iterator& first, const const_iterator& last) {
         if (!is_valid(pos) && pos != end())
             return;
 
-        size_t sz = 0;
-        {
-            for (const_iterator it = first; it != last; ++it) ++sz;
-        }
+        size_t sz = last - first;
+
         size_t new_sz = size() + sz;
         if (new_sz > capacity())
             new_sz = capacity();
@@ -427,13 +445,13 @@ public:
             --it;
         }
         for (size_t i = 0; i < sz; ++i) {
-            *(iterator)(it + i) = *(first + i);
+            *(it + i) = *(first + i);
             if (size() < capacity() || (it + i) == end())
                 increment_tail();
         }
     }
 
-    void insert(const_iterator pos, const T* first, const T* last) {
+    void insert(const const_iterator& pos, const T* first, const T* last) {
         if (!is_valid(pos) && pos != end())
             return;
 
@@ -449,22 +467,22 @@ public:
             --it;
         }
         for (size_t i = 0; i < sz; ++i) {
-            *(iterator)(it + i) = *(first + i);
+            *(it + i) = *(first + i);
             if (size() < capacity() || (it + i) == end())
                 increment_tail();
         }
     }
 
-    void insert(const_iterator pos, const T& val) {
+    void insert(const const_iterator& pos, const T& val) {
         const T* ptr = &val;
         insert(pos, ptr, ptr + 1);
     }
 
 private:
-    T& get(const Iterator& it) {
+    T& get(const iterator& it) {
         return queue_[it.index()];
     }
-    const T& get(const Iterator& it) const {
+    const T& get(const const_iterator& it) const {
         return queue_[it.index()];
     }
     T& get(const int index) {
@@ -474,17 +492,17 @@ private:
         return queue_[head_.index_with_offset(index)];
     }
 
-    T* ptr(const Iterator& it) {
-        return (T*)(queue_ + it.index());
+    T* ptr(const iterator& it) {
+        return queue_ + it.index();
     }
-    const T* ptr(const Iterator& it) const {
-        return (T*)(queue_ + it.index());
+    const T* ptr(const const_iterator& it) const {
+        return queue_ + it.index();
     }
     T* ptr(const int index) {
-        return (T*)(queue_ + head_.index_with_offset(index));
+        return queue_ + head_.index_with_offset(index);
     }
     const T* ptr(const int index) const {
-        return (T*)(queue_ + head_.index_with_offset(index));
+        return queue_ + head_.index_with_offset(index);
     }
 
     void increment_head() {
@@ -521,7 +539,9 @@ private:
         }
     }
 
-    bool is_valid(const iterator& it) const {
+    bool is_valid(const const_iterator& it) const {
+        if (it.ptr != queue_)
+            return false; // iterator to a different object
         return (it.raw_pos() >= head_.raw_pos()) && (it.raw_pos() < tail_.raw_pos());
     }
 };
@@ -680,9 +700,9 @@ bool operator!=(const pair<T1, T2>& x, const pair<T1, T2>& y) {
 
 template <class Key, class T, size_t N = ARX_MAP_DEFAULT_SIZE>
 struct map : public RingBuffer<pair<Key, T>, N> {
-    using iterator = typename RingBuffer<pair<Key, T>, N>::iterator;
-    using const_iterator = typename RingBuffer<pair<Key, T>, N>::const_iterator;
     using base = RingBuffer<pair<Key, T>, N>;
+    using iterator = typename base::iterator;
+    using const_iterator = typename base::const_iterator;
 
     map()
     : base() {}
@@ -771,8 +791,8 @@ struct map : public RingBuffer<pair<Key, T>, N> {
         return find(key)->second;
     }
 
-    iterator erase(const iterator& it) {
-        iterator i = (iterator)find(it->first);
+    iterator erase(const const_iterator& it) {
+        iterator i = find(it->first);
         return base::erase(i);
     }
 
