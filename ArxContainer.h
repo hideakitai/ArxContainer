@@ -391,9 +391,9 @@ public:
 
     void resize(size_t sz) {
         size_t s = size();
-        if (sz > size()) {
+        if (sz > s) {
             for (size_t i = 0; i < sz - s; ++i) push(T());
-        } else if (sz < size()) {
+        } else if (sz < s) {
             for (size_t i = 0; i < s - sz; ++i) pop();
         }
     }
@@ -405,7 +405,6 @@ public:
 
     void assign(const T* first, const T* end) {
         clear();
-        // T* it = first;
         while (first != end) push(*(first++));
     }
 
@@ -419,11 +418,8 @@ public:
     }
 
     void fill(const T& v) {
-        iterator it = begin();
-        while (it != end()) {
+        for (iterator it = begin(); it != end(); ++it)
             *it = v;
-            ++it;
-        }
     }
 
     // https://en.cppreference.com/w/cpp/container/vector/insert
@@ -530,7 +526,7 @@ private:
         else if (head_ <= (static_cast<int>(INT_MIN) + static_cast<int>(capacity())) \
                 || tail_ >= (static_cast<int>(INT_MAX) - static_cast<int>(capacity()))) {
             // +/- capacity(): reserve some space for pointer/iterator arithmetics
-            // pointer are newly set N+1 steps before the overflow occurs
+            // head_/tail_ pointers are re-set N+1 steps before the overflow occurs
             int len = size();
             head_ = begin().index();
             tail_ = head_ + len;
