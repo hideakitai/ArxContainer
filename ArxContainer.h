@@ -97,7 +97,6 @@ class RingBuffer {
         int index() const {
             return pos_wrap_around(pos);
         }
-
         int index_with_offset(const int i) const {
             return pos_wrap_around(pos + i);
         }
@@ -246,8 +245,8 @@ protected:
     friend class ConstIterator;
 
     T queue_[N];
-    Iterator head_;
-    Iterator tail_;
+    int head_;
+    int tail_;
 
 public:
     using iterator = Iterator;
@@ -255,14 +254,14 @@ public:
 
     RingBuffer()
     : queue_()
-    , head_(queue_, 0)
-    , tail_(queue_, 0) {
+    , head_(0)
+    , tail_(0) {
     }
 
     RingBuffer(std::initializer_list<T> lst)
     : queue_()
-    , head_(queue_, 0)
-    , tail_(queue_, 0) {
+    , head_(0)
+    , tail_(0) {
         for (auto it = lst.begin(); it != lst.end(); ++it) {
             push_back(*it);
         }
@@ -271,18 +270,18 @@ public:
     // copy
     explicit RingBuffer(const RingBuffer& r)
     : queue_()
-    , head_(queue_, r.head_.raw_pos())
-    , tail_(queue_, r.tail_.raw_pos()) {
+    , head_(r.head_)
+    , tail_(r.tail_) {
         for (size_t i = 0; i < r.size(); ++i) {
-            int pos = ConstIterator::pos_wrap_around(r.head_.raw_pos() + (int)i);
+            int pos = r.begin().index_with_offset(i);
             queue_[pos] = r.queue_[pos];
         }
     }
     RingBuffer& operator=(const RingBuffer& r) {
-        head_.set(r.head_.raw_pos());
-        tail_.set(r.tail_.raw_pos());
+        head_ = r.head_;
+        tail_ = r.tail_;
         for (size_t i = 0; i < r.size(); ++i) {
-            int pos = ConstIterator::pos_wrap_around(r.head_.raw_pos() + (int)i);
+            int pos = r.begin().index_with_offset(i);
             queue_[pos] = r.queue_[pos];
         }
         return *this;
@@ -293,7 +292,7 @@ public:
         head_ = container::detail::move(r.head_);
         tail_ = container::detail::move(r.tail_);
         for (size_t i = 0; i < r.size(); ++i) {
-            int pos = ConstIterator::pos_wrap_around(r.head_.raw_pos() + (int)i);
+            int pos = r.begin().index_with_offset(i);
             queue_[pos] = container::detail::move(r.queue_[pos]);
         }
     }
@@ -302,23 +301,22 @@ public:
         head_ = container::detail::move(r.head_);
         tail_ = container::detail::move(r.tail_);
         for (size_t i = 0; i < r.size(); ++i) {
-            int pos = ConstIterator::pos_wrap_around(r.head_.raw_pos() + (int)i);
+            int pos = r.begin().index_with_offset(i);
             queue_[pos] = container::detail::move(r.queue_[pos]);
         }
         return *this;
     }
 
-    virtual ~RingBuffer() {}
-
-    size_t capacity() const { return N; };
-    size_t size() const { return abs(tail_.raw_pos() - head_.raw_pos()); }
-    inline const T* data() const { return &(get(head_)); }
-    T* data() { return &(get(head_)); }
-    bool empty() const { return tail_ == head_; }
-    void clear() {
-        head_.reset();
-        tail_.reset();
-    }
+    inline size_t capacity() const { return N; };
+    inline size_t size() const { return tail_ - head_; }
+    // data() method better not to use :-(
+    // it should point to the 1st item and have enough space for size() readings of items
+    // impossible with ringbuffer - either points to the 1st item or has enough space
+    // only exception when it works is when head_ pos == 0
+    const T* data() const { return &(queue_); }
+    T* data() { return &(queue_); }
+    inline bool empty() const { return tail_ == head_; }
+    inline void clear() { head_ = tail_ = 0; }
 
     void pop() {
         pop_front();
@@ -345,39 +343,39 @@ public:
         push_back(data);
     }
     void push_back(const T& data) {
-        get(tail_) = data;
+        get(size()) = data;
         increment_tail();
-    };
+    }
     void push_back(T&& data) {
-        get(tail_) = data;
+        get(size()) = data;
         increment_tail();
-    };
+    }
     void push_front(const T& data) {
         decrement_head();
-        get(head_) = data;
-    };
+        get(0) = data;
+    }
     void push_front(T&& data) {
         decrement_head();
-        get(head_) = data;
-    };
+        get(0) = data;
+    }
     void emplace(const T& data) { push(data); }
     void emplace(T&& data) { push(data); }
     void emplace_back(const T& data) { push_back(data); }
     void emplace_back(T&& data) { push_back(data); }
 
-    const T& front() const { return get(head_); }
-    T& front() { return get(head_); }
+    const T& front() const { return get(0); }
+    T& front() { return get(0); }
 
-    const T& back() const { return get(size() - 1); }
-    T& back() { return get(size() - 1); }
+    const T& back() const { return get(static_cast<int>(size()) - 1); }
+    T& back() { return get(static_cast<int>(size()) - 1); }
 
-    const T& operator[](size_t index) const { return get((int)index); }
-    T& operator[](size_t index) { return get((int)index); }
+    const T& operator[](size_t index) const { return get(static_cast<int>(index)); }
+    T& operator[](size_t index) { return get(static_cast<int>(index)); }
 
-    iterator begin() { return empty() ? Iterator() : head_; }
-    iterator end() { return empty() ? Iterator() : tail_; }
-    const_iterator begin() const { return empty() ? ConstIterator() : static_cast<ConstIterator>(head_); }
-    const_iterator end() const { return empty() ? ConstIterator() : static_cast<ConstIterator>(tail_); }
+    iterator begin() { return empty() ? Iterator() : Iterator(queue_, head_); }
+    iterator end() { return empty() ? Iterator() : Iterator(queue_, tail_); }
+    const_iterator begin() const { return empty() ? ConstIterator() : ConstIterator(queue_, head_); }
+    const_iterator end() const { return empty() ? ConstIterator() : ConstIterator(queue_, tail_); }
 
     // https://en.cppreference.com/w/cpp/container/vector/erase
     iterator erase(const const_iterator& p) {
@@ -486,10 +484,10 @@ private:
         return queue_[it.index()];
     }
     T& get(const int index) {
-        return queue_[head_.index_with_offset(index)];
+        return queue_[begin().index_with_offset(index)];
     }
     const T& get(const int index) const {
-        return queue_[head_.index_with_offset(index)];
+        return queue_[begin().index_with_offset(index)];
     }
 
     T* ptr(const iterator& it) {
@@ -499,10 +497,10 @@ private:
         return queue_ + it.index();
     }
     T* ptr(const int index) {
-        return queue_ + head_.index_with_offset(index);
+        return queue_ + begin().index_with_offset(index);
     }
     const T* ptr(const int index) const {
-        return queue_ + head_.index_with_offset(index);
+        return queue_ + begin().index_with_offset(index);
     }
 
     void increment_head() {
@@ -529,20 +527,20 @@ private:
     void resolve_overflow() {
         if (empty())
             clear();
-        else if (head_.raw_pos() <= ((int)INT_MIN + (int)capacity()) \
-                || tail_.raw_pos() >= ((int)INT_MAX - (int)capacity())) {
+        else if (head_ <= (static_cast<int>(INT_MIN) + static_cast<int>(capacity())) \
+                || tail_ >= (static_cast<int>(INT_MAX) - static_cast<int>(capacity()))) {
             // +/- capacity(): reserve some space for pointer/iterator arithmetics
             // pointer are newly set N+1 steps before the overflow occurs
             int len = size();
-            head_.set(begin().index());
-            tail_.set(head_.raw_pos() + len);
+            head_ = begin().index();
+            tail_ = head_ + len;
         }
     }
 
     bool is_valid(const const_iterator& it) const {
         if (it.ptr != queue_)
             return false; // iterator to a different object
-        return (it.raw_pos() >= head_.raw_pos()) && (it.raw_pos() < tail_.raw_pos());
+        return (it.raw_pos() >= head_) && (it.raw_pos() < tail_);
     }
 };
 
@@ -587,8 +585,6 @@ struct vector : public RingBuffer<T, N> {
         return *this;
     }
 
-    virtual ~vector() {}
-
 private:
     using RingBuffer<T, N>::pop;
     using RingBuffer<T, N>::pop_front;
@@ -626,8 +622,6 @@ struct array : public RingBuffer<T, N> {
         return *this;
     }
 
-    virtual ~array() {}
-
 private:
     using RingBuffer<T, N>::pop;
     using RingBuffer<T, N>::pop_front;
@@ -663,8 +657,6 @@ struct deque : public RingBuffer<T, N> {
         RingBuffer<T, N>::operator=(r);
         return *this;
     }
-
-    virtual ~deque() {}
 
 private:
     using RingBuffer<T, N>::capacity;
@@ -726,8 +718,6 @@ struct map : public RingBuffer<pair<Key, T>, N> {
         base::operator=(r);
         return *this;
     }
-
-    virtual ~map() {}
 
     const_iterator find(const Key& key) const {
         for (size_t i = 0; i < this->size(); ++i) {
