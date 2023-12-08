@@ -13,15 +13,6 @@
 #include "ArxContainer/replace_minmax_macros.h"
 #include "ArxContainer/initializer_list.h"
 
-#if ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L  // Have libstdc++11
-
-#include <vector>
-#include <array>
-#include <deque>
-#include <map>
-
-#else  // Do not have libstdc++11
-
 #include <limits.h>
 
 #ifndef ARX_VECTOR_DEFAULT_SIZE
@@ -458,7 +449,7 @@ public:
         size_t new_sz = size() + sz;
         if (new_sz > capacity())
             new_sz = capacity();
-            
+
         iterator it = begin() + new_sz - 1;
         while (it != pos) {
             *it = *(it - sz);
@@ -830,5 +821,4 @@ private:
 template <typename T, size_t N>
 using ArxRingBuffer = arx::RingBuffer<T, N>;
 
-#endif  // Do not have libstdc++11
 #endif  // ARX_RINGBUFFER_H
