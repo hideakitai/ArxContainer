@@ -13,6 +13,15 @@
 #include "ArxContainer/replace_minmax_macros.h"
 #include "ArxContainer/initializer_list.h"
 
+#if ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L  // Have libstdc++11
+
+#include <vector>
+#include <array>
+#include <deque>
+#include <map>
+
+#endif
+
 #include <limits.h>
 
 #ifndef ARX_VECTOR_DEFAULT_SIZE
