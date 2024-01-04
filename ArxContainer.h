@@ -317,8 +317,8 @@ public:
     // it should point to the 1st item and have enough space for size() readings of items
     // impossible with ringbuffer - either points to the 1st item or has enough space
     // only exception when it works is when head_ pos == 0
-    const T* data() const { return &(queue_); }
-    T* data() { return &(queue_); }
+    const T* data() const { return reinterpret_cast<const T*>(&(queue_)); }
+    T* data() { return reinterpret_cast<T*>(&(queue_)); }
     inline bool empty() const { return tail_ == head_; }
     inline void clear() { head_ = tail_ = 0; }
 
