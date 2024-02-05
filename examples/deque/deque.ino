@@ -1,7 +1,7 @@
 #include <ArxContainer.h>
 
 // initialize with initializer_list
-arx::deque<int> dq {1, 2, 3};
+std::deque<int> dq {1, 2, 3};
 
 void setup() {
     Serial.begin(115200);

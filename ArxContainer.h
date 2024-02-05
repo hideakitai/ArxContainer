@@ -10,6 +10,31 @@
 #include <Arduino.h>
 #endif
 
+// Make sure std namespace exists
+namespace std { }
+
+// Import everything from the std namespace into arx::std, so that
+// anything we import rather than define is also available through
+// arx::stdx.
+// This includes everything yet to be defined, so we can do this early
+// (and must do so, to allow e.g. the C++14 additions in the arx::std
+// namespace to reference the C++11 stuff from the system headers.
+namespace arx {
+    namespace stdx {
+        using namespace ::std;
+    }
+}
+
+// Import everything from arx::std back into the normal std namespace.
+// This ensures that you can just use `std::foo` everywhere and you get
+// the standard library version if it is available, falling back to arx
+// versions for things not supplied by the standard library. Only when
+// you really need the arx version (e.g. for constexpr numeric_limits
+// when also using ArduinoSTL), you need to qualify with arx::stdx::
+namespace std {
+    using namespace ::arx::stdx;
+}
+
 #include "ArxContainer/replace_minmax_macros.h"
 #include "ArxContainer/initializer_list.h"
 
@@ -41,7 +66,7 @@ namespace arx {
 namespace container {
     namespace detail {
         template <class T>
-        T&& move(T& t) { return static_cast<T&&>(t); }
+        inline T&& move(T& t) { return static_cast<T&&>(t); }
     }  // namespace detail
 }  // namespace container
 
@@ -311,16 +336,16 @@ public:
         return *this;
     }
 
-    inline size_t capacity() const { return N; };
-    inline size_t size() const { return tail_ - head_; }
+    size_t capacity() const { return N; };
+    size_t size() const { return tail_ - head_; }
     // data() method better not to use :-(
     // it should point to the 1st item and have enough space for size() readings of items
     // impossible with ringbuffer - either points to the 1st item or has enough space
     // only exception when it works is when head_ pos == 0
     const T* data() const { return reinterpret_cast<const T*>(&(queue_)); }
     T* data() { return reinterpret_cast<T*>(&(queue_)); }
-    inline bool empty() const { return tail_ == head_; }
-    inline void clear() { head_ = tail_ = 0; }
+    bool empty() const { return tail_ == head_; }
+    void clear() { head_ = tail_ = 0; }
 
     void pop() {
         pop_front();
@@ -544,8 +569,10 @@ private:
     }
 };
 
+} // namespace arx
+
 template <typename T, size_t N>
-bool operator==(const RingBuffer<T, N>& x, const RingBuffer<T, N>& y) {
+inline bool operator==(const arx::RingBuffer<T, N>& x, const arx::RingBuffer<T, N>& y) {
     if (x.size() != y.size()) return false;
     for (size_t i = 0; i < x.size(); ++i)
         if (x[i] != y[i]) return false;
@@ -553,9 +580,12 @@ bool operator==(const RingBuffer<T, N>& x, const RingBuffer<T, N>& y) {
 }
 
 template <typename T, size_t N>
-bool operator!=(const RingBuffer<T, N>& x, const RingBuffer<T, N>& y) {
+inline bool operator!=(const arx::RingBuffer<T, N>& x, const arx::RingBuffer<T, N>& y) {
     return !(x == y);
 }
+
+namespace arx {
+namespace stdx {
 
 template <typename T, size_t N = ARX_VECTOR_DEFAULT_SIZE>
 struct vector : public RingBuffer<T, N> {
@@ -594,6 +624,12 @@ private:
     using RingBuffer<T, N>::fill;
 };
 
+} // namespace arx
+} // namespace stdx
+
+namespace arx {
+namespace stdx {
+
 template <typename T, size_t N>
 struct array : public RingBuffer<T, N> {
     using iterator = typename RingBuffer<T, N>::iterator;
@@ -629,6 +665,12 @@ private:
     using RingBuffer<T, N>::push_front;
     using RingBuffer<T, N>::emplace;
 };
+
+} // namespace arx
+} // namespace stdx
+
+namespace arx {
+namespace stdx {
 
 template <typename T, size_t N = ARX_DEQUE_DEFAULT_SIZE>
 struct deque : public RingBuffer<T, N> {
@@ -669,6 +711,12 @@ private:
     using RingBuffer<T, N>::fill;
 };
 
+} // namespace arx
+} // namespace stdx
+
+namespace arx {
+namespace stdx {
+
 template <class T1, class T2>
 struct pair {
     T1 first;
@@ -676,19 +724,25 @@ struct pair {
 };
 
 template <class T1, class T2>
-pair<T1, T2> make_pair(const T1& t1, const T2& t2) {
+inline pair<T1, T2> make_pair(const T1& t1, const T2& t2) {
     return {t1, t2};
 };
 
+} // namespace arx
+} // namespace stdx
+
 template <typename T1, typename T2>
-bool operator==(const pair<T1, T2>& x, const pair<T1, T2>& y) {
+inline bool operator==(const arx::stdx::pair<T1, T2>& x, const arx::stdx::pair<T1, T2>& y) {
     return (x.first == y.first) && (x.second == y.second);
 }
 
 template <typename T1, typename T2>
-bool operator!=(const pair<T1, T2>& x, const pair<T1, T2>& y) {
+inline bool operator!=(const arx::stdx::pair<T1, T2>& x, const arx::stdx::pair<T1, T2>& y) {
     return !(x == y);
 }
+
+namespace arx {
+namespace stdx {
 
 template <class Key, class T, size_t N = ARX_MAP_DEFAULT_SIZE>
 struct map : public RingBuffer<pair<Key, T>, N> {
@@ -736,7 +790,7 @@ struct map : public RingBuffer<pair<Key, T>, N> {
     }
 
     pair<iterator, bool> insert(const Key& key, const T& t) {
-        return insert(make_pair(key, t));
+        return insert(::arx::stdx::make_pair(key, t));
     }
 
     pair<iterator, bool> insert(const pair<Key, T>& p) {
@@ -803,7 +857,7 @@ public:
         iterator it = find(key);
         if (it != this->end()) return it->second;
 
-        insert(::arx::make_pair(key, T()));
+        insert(::arx::stdx::make_pair(key, T()));
         return this->back().second;
     }
 
@@ -825,7 +879,8 @@ private:
     using base::fill;
 };
 
-}  // namespace arx
+} //  namespace stdx
+} // namespace arx
 
 template <typename T, size_t N>
 using ArxRingBuffer = arx::RingBuffer<T, N>;
