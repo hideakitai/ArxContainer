@@ -1,7 +1,7 @@
 #include <ArxContainer.h>
 
 // initialize with initializer_list
-arx::array<int, 3> arr {1, 2, 3};
+std::array<int, 3> arr {1, 2, 3};
 
 void setup() {
     Serial.begin(115200);
@@ -27,4 +27,3 @@ void setup() {
 
 void loop() {
 }
-

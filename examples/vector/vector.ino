@@ -1,7 +1,7 @@
 #include <ArxContainer.h>
 
 // initialize with initializer_list
-arx::vector<int> vs {1, 2, 3};
+std::vector<int> vs {1, 2, 3};
 
 void setup() {
     Serial.begin(115200);
