@@ -4,11 +4,10 @@ C++ container-like classes (`vector`, `array`, `deque`, `map` etc.) for Arduino 
 
 ## Note
 
-- `ArxContainer` is C++ container-__like__ classes for Arduino
-  - Containers in this library is defined inside namespace `arx` instad of `std` (e.g. `arx::vector`)
+- `ArxContainer` is C++ container-**like** classes for Arduino
+  - Containers in this library is defined inside namespace `arx::stdx` instad of `std` (e.g. `arx::stdx::vector`)
   - All of the functions is not supported currently
-- If standard libraries are available, automatically use `std` version instead of `arx` version
-
+- If standard libraries are available, automatically use `std` version instead of `arx::stdx` version
 
 ## Supported Container Types
 
@@ -17,16 +16,14 @@ C++ container-like classes (`vector`, `array`, `deque`, `map` etc.) for Arduino 
 - `map` (`pair`)
 - `deque`
 
-
 ## Supported Boards
 
-`arx` version of containers are enabled only if you use following architecture.
-In other borads, `arx` version is disabled and standard libraries (`std` version) will be imported (because they can use them).
+`arx::stdx` version of containers are enabled only if you use following architecture.
+In other borads, `arx::stdx` version is disabled and standard libraries (`std` version) will be imported (because they can use them).
 
 - AVR (Uno, Nano, Mega, etc.)
 - MEGAAVR (Uno WiFi, Nano Ecery, etc.)
 - SAM (Due)
-
 
 ## Usage
 
@@ -34,7 +31,9 @@ In other borads, `arx` version is disabled and standard libraries (`std` version
 
 ```C++
 // initialize with initializer_list
-arx::vector<int> vs {1, 2, 3};
+std::vector<int> vs {1, 2, 3};
+// this is same as
+// arx::stdx::vector<int> vs {1, 2, 3};
 
 // add contents
 for (size_t i = 4; i <= 5; ++i)
@@ -53,7 +52,9 @@ for (const auto& v : vs)
 
 ```C++
 // initialize with initializer_list
-arx::array<int, 3> arr {1, 2, 3};
+std::array<int, 3> arr {1, 2, 3};
+// this is same as
+// arx::stdx::array<int, 3> arr {1, 2, 3};
 
 // fill
 arr.fill(123);
@@ -69,9 +70,11 @@ for (const auto& a : arr)
 
 ### map
 
-``` C++
+```C++
 // initialize with initializer_list
-arx::map<String, int> mp {{"one", 1}, {"two", 2}};
+std::map<String, int> mp {{"one", 1}, {"two", 2}};
+// this is same as
+// arx::stdx::map<String, int> mp {{"one", 1}, {"two", 2}};
 
 // add contents
 mp.insert("three", 3);
@@ -97,7 +100,9 @@ Serial.print("four  = "); Serial.println(mp["four"]);
 
 ```C++
 // initialize with initializer_list
-arx::deque<int> dq {1, 2, 3};
+std::deque<int> dq {1, 2, 3};
+// this is same as
+// arx::stdx::deque<int> dq {1, 2, 3};
 
 // add contents
 for (int i = 4; i <= 5; ++i)
@@ -108,11 +113,10 @@ for (int i = 0; i < dq.size(); ++i)
     Serial.print(dq[i]);
 ```
 
-
 ## Detail
 
-`ArxContainer` is C++ container-__like__ classes for Arduino.
-This library is based on `arx::RingBuffer` and `arx::xxxx` is limited-size container.
+`ArxContainer` is C++ container-**like** classes for Arduino.
+This library is based on `arx::RingBuffer` and `arx::stdx::xxxx` is limited-size container.
 `arx::RingBuffer` can be used as:
 
 ```C++
@@ -131,10 +135,11 @@ for(auto& b : buffer)
     Serial.println(b);
 ```
 
-`arx::xxxx` are derived from `RingBuffer` and defined as:
+`arx::stdx::xxxx` are derived from `RingBuffer` and defined as:
 
-``` C++
+```C++
 namespace arx {
+namespace stdx {
     template <typename T, size_t N = ARX_VECTOR_DEFAULT_SIZE>
     struct vector : public RingBuffer<T, N>
 
@@ -147,16 +152,16 @@ namespace arx {
     template <typename T, size_t N = ARX_DEQUE_DEFAULT_SIZE>
     struct deque : public RingBuffer<T, N>
 }
+}
 ```
 
-So range-based loop cannot be applyed to `arx::deque` (iterator is not continuous because it is based on `RingBuffer`).
-
+So range-based loop cannot be applyed to `arx::stdx::deque` (iterator is not continuous because it is based on `RingBuffer`).
 
 ### Manage Size Limit of Container
 
 Global default size of container can be changed by defining these macros before `#include <ArxContainer.h>`.
 
-``` C++
+```C++
 #define ARX_VECTOR_DEFAULT_SIZE XX // default: 16
 #define ARX_MAP_DEFAULT_SIZE XX    // default: 16
 #define ARX_DEQUE_DEFAULT_SIZE XX  // default: 16
@@ -164,17 +169,16 @@ Global default size of container can be changed by defining these macros before 
 
 Or you can change each container size by template argument.
 
-``` C++
-arx::vector<int, 3> vs;
-arx::map<String, int, 4> ms;
-arx::deque<int, 5> ds;
+```C++
+arx::stdx::vector<int, 3> vs;
+arx::stdx::map<String, int, 4> ms;
+arx::stdx::deque<int, 5> ds;
 ```
 
 ## Roadmap
 
 This library will be updated if I want to use more container interfaces on supported boards shown above.
 PRs are welcome!
-
 
 ## Used Inside of
 
@@ -187,7 +191,6 @@ PRs are welcome!
 - [TaskManager](https://github.com/hideakitai/TaskManager)
 - [ArxStringUtils](https://github.com/hideakitai/ArxStringUtils)
 - [Debouncer](https://github.com/hideakitai/Debouncer)
-
 
 ## License
 
