@@ -704,10 +704,6 @@ private:
     using RingBuffer<T, N>::capacity;
     using RingBuffer<T, N>::pop;
     using RingBuffer<T, N>::push;
-    using RingBuffer<T, N>::emplace;
-    using RingBuffer<T, N>::assign;
-    using RingBuffer<T, N>::begin;
-    using RingBuffer<T, N>::end;
     using RingBuffer<T, N>::fill;
 };
 
